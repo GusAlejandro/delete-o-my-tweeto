@@ -18,7 +18,7 @@ def download_video_from_m3u8(m3u8_text: str, tweet_id: str):
     video_chunks = ''
     ts_prefix = "https://video.twimg.com"
     for line in m3u8_text.splitlines():
-        if "/ext_tw_video/" in line:
+        if "/ext_tw_video/" in line or "/amplify_video/" in line:
             req = requests.get(ts_prefix + line)
             chunk_name = str(uuid.uuid4())
             open(chunk_name + '.ts', 'wb').write(req.content)
