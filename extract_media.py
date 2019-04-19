@@ -29,7 +29,7 @@ def download_video_from_m3u8(m3u8_text: str, tweet_id: str):
     # delete chunks
     for chunk in video_chunks.split():
         os.system('rm ' + chunk)
-    print("Video downloaded successfully")
+    # print("Video downloaded successfully")
 
 
 def download_video_from_mp4(mp4_url: str, tweet_id: str):
@@ -41,7 +41,7 @@ def download_video_from_mp4(mp4_url: str, tweet_id: str):
     """
     req = requests.get(mp4_url)
     open(tweet_id + '.mp4', 'wb').write(req.content)
-    print("Video downloaded successfully")
+    # print("Video downloaded successfully")
 
 
 def get_resource_url(tweet_id: str, token: str):
@@ -88,7 +88,7 @@ def video_main(tweet_id: str):
 
     if not resource_url:
         print("RATE LIMIT HIT")
-        return
+        return "RATE LIMIT HIT"
 
     if '.m3u8' in resource_url:
         # we have an m3u8 file
@@ -134,8 +134,14 @@ def get_media(tweet_id: str):
     """
     # we first need to scrape in order to determine if we have any media on the tweet
     tweet_url = 'https://twitter.com/' + 'username' + '/status/' + tweet_id
+    # TODO: Insert code to check if the tweet no longer exists, return specific message that it no longer exists
     tweet_html = requests.get(tweet_url).text
     tweet_soup = BeautifulSoup(tweet_html, 'html.parser')
+    # check for deleted tweet
+    deleted = tweet_soup.find_all("div", {'class': 'errorpage-body-content'})
+    if deleted:
+        return 'Tweet already deleted'
+
     top_level_tag = str(tweet_soup.find_all("div", {'data-tweet-id': tweet_id}))
 
     media_soup = BeautifulSoup(top_level_tag, 'html.parser')
@@ -149,10 +155,11 @@ def get_media(tweet_id: str):
             image_list.append(image['src'])
 
     if video_tag:
-        print("we have video")
-        video_main(tweet_id)
-    elif image_list:
-        print("we have image(s)")
+        print("downloaded video attached to tweet")
+        return video_main(tweet_id)
+
+    if image_list:
+        print("downloaded image(s) attached to tweet")
         photo_main(tweet_id, image_list)
     else:
-        print("no media")
+        print("no media attached to tweet")

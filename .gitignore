@@ -3,3 +3,4 @@ venv/
 .DS_Store
 tweets.csv
 __pycache__/
+config.json

@@ -1,19 +1,40 @@
+"""
+This module controls logic surrounding reading in the tweet archive, deleting & storing media of the tweets.
+"""
 import pandas
-import sys
+from tweet_deletion import initialize_and_return_api_object, delete_tweet
 from extract_media import get_media
 
-df = pandas.read_csv('tweets.csv')
-# print(df['text'][460])
+# TODO: Later add logic to validate file format
 
 
-def process_csv(tweet_id: str):
+def process_csv(file_name: str):
     """
     Potential flow:
     sart with scraping tweet to discover if its video, photo, or just text
     3 paths, if image, call
     :return:
     """
-    get_media(tweet_id)
+    df = pandas.read_csv(file_name)
+    api = initialize_and_return_api_object()
+    for tweet in df.iterrows():
+        tweet_id = str(tweet[1][0])
+        print("Tweet ID:" + str(tweet_id))
+        response = get_media(tweet_id)
+        if response == "RATE LIMIT HIT":
+            # TODO: Need to handle hitting the rate limit for downloading videos
+            pass
+        elif response == 'Tweet already deleted':
+            print('Tweet already deleted')
+        else:
+            # happy path
+            delete_tweet(tweet_id, api)
+            print("Tweet was deleted")
 
 
-process_csv(sys.argv[1])
+
+
+
+
+
+process_csv('trial.csv')
